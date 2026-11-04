@@ -20,7 +20,7 @@ class MovieController extends Controller
         $genres = Genre::all();
         DB::enableQueryLog();
 
-        $query = Movie::with('genre');
+        $query = Movie::withh('genre');
 
         if ($genre_id) {
             $query = $query->where('genre_id', $genre_id);
@@ -100,6 +100,11 @@ class MovieController extends Controller
 
         $movie->update($validated);
 
+        Log::info('Movie updated', [
+            'id'        => $movie-> id,
+            'genre_id'  => $movie-> genre_id,
+        ]);
+
         return redirect()
             ->route('movies.index')
             ->with('success', 'Movie updated successfully');
@@ -110,6 +115,8 @@ class MovieController extends Controller
      */
     public function destroy(Movie $movie)
     {
+        abort_if($movie->genre->movies()->count() === 1, 403);
+
         $movie->delete();
 
         return redirect()
